@@ -121,22 +121,22 @@ while read -r line; do
       search_arg3="error: target not found: ""$line"
             
       log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   "
-      echo -n "\r${log_entry}"
+      printf '%s\r' "${log_entry}"
       echo "${log_entry}" >> "${pacman_log}"
 
       sudo pacman --noconfirm -Syu "$line" > "${tmp_log}" 2>&1
 
       if grep --quiet "${search_arg1}" "${tmp_log}"
       then
-         log_entry="...""$line"" installed"
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" installed"
          echo "${log_entry}"
       elif grep --quiet "${search_arg2}" "${tmp_log}"
       then
-         log_entry="...""$line"" was reinstalled"
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" was reinstalled"
          echo "${log_entry}"
       elif grep --quiet "${search_arg3}" "${tmp_log}"
       then
-         log_entry="...""$line"" was not found"
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" was not found"
          echo "${log_entry}"
          errors_found="Y"
          log_entry="***** ERROR installing ""$line"", review ""$err_log"" *****"
@@ -149,8 +149,6 @@ while read -r line; do
          cat "${tmp_log}" >> "${err_log}"
          echo "${log_heading_2}" >> "${err_log}"
       else
-         log_entry="...""$line"" was not found"
-         echo "${log_entry}"
          errors_found="Y"
          log_entry="***** ERROR installing ""$line"", review ""$err_log"" *****"
          printf '%s\n' "${log_entry}"
