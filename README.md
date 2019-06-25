@@ -1,6 +1,6 @@
 ![Screenshot](https://i.imgur.com/Byrt04O.png)
-![Screenshot](https://i.imgur.com/8RDWQhc.png)
-![Screenshot](https://i.imgur.com/miDKQzI.png)
+![Screenshot](https://i.imgur.com/kN7JOw6.png)
+![Screenshot](https://i.imgur.com/7mzY3SZ.png)
 
 # build-pacman-packages
 
