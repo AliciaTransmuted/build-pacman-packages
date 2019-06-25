@@ -22,5 +22,4 @@ Benefits
 
 Screenshots of Log files
 ![Screenshot](https://i.imgur.com/rONCap6.png)
-![Screenshot](https://i.imgur.com/8jNpbC9.png)
 ![Screenshot](https://i.imgur.com/LW1OoEl.png)
