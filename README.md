@@ -15,7 +15,7 @@ Benefits
 - lets you keep an ongoing alphabetical (highly recommended) list of useful pacman packages you can't live without
 - installs each package, one at a time... that way if a particular application is missing, it doesn't hold up the rest
 - handy error log lets you get right to the problem packages
-- provides a very easy way to rebuild your application base on a brand new build... just start it, watch some tv, check it later
+- provides a simple way to rebuild your application base on a new build... just start it, watch some tv, check it later
 - keeps logs of previous installation attempts
 
 2019-06-25: Initial release
