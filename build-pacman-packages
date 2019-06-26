@@ -1,0 +1,205 @@
+#!/bin/bash
+
+#-----------------------------------------------------------
+# build-pacman-packages
+# version 1.0
+# Install a list of applications using pacman
+# June 25, 2019
+# AliciaTransmuted
+# https://github.com/AliciaTransmuted/build-pacman-packages
+# ----------------------------------------------------------
+# dependancies: grep
+
+###
+### Functions
+###
+
+show_usage (){
+
+printf "\n"
+printf "Usage: sudo sh $0 [options [parameters]]\n"
+printf "\n"
+printf "version 1.0\n"
+printf "\n"
+printf "Options:\n"
+printf " $color_on-i|--inputlist$color_off, list of pacman packages to install (Default input file is ~/pacman-packages) I.E. $color_on-i my-packages$color_off\n"
+printf " $color_on-h|--help$color_off, Print help (this dialog) I.E. $color_on-h$color_off\n"
+printf "\n"
+printf "$0 installs a list of applications using pacman \n"
+printf "   - summarises the installation process to the terminal\n"
+printf "   - summarises errors, missing packages, and other exceptions to a dedicated error file\n"
+printf "\n"
+
+return 0
+}
+
+
+# ***** initialize variables
+
+cd
+
+username=$USER
+
+if [ -n "$SUDO_USER" ]; then
+   username=$SUDO_USER
+fi
+
+input_list="/home/""${username}""/pacman-packages"
+
+log_dir="/home/""${username}""/logs"
+
+log_heading_1="................................................................................................................."
+log_heading_2="................................................................................................................."
+log_heading_3="J O B     H A S     C O M P L E T E D"
+log_heading_4="*****************************************************************************************************************"
+
+# ***** colours
+color_red="\e[91m"
+color_green="\e[92m"
+color_yellow="\e[93m"
+color_cyan="\e[96m"
+
+color_on="${color_green}"
+color_off="\e[0m"
+
+pacman_count=0
+errors_found="N"
+
+while [ ! -z "$1" ]; do
+  case "$1" in
+     --inputlist|-i)
+         shift
+         if [ -n "$1" ]; then
+            input_list="/home/""${username}""/""$1"
+         fi
+         ;;
+     --help|-h)
+         show_usage
+         exit 1
+         ;;
+     *)
+        show_usage
+        exit 1
+        ;;
+  esac
+shift
+done
+
+# ***** initialize logs
+
+mkdir -p "${log_dir}"
+sudo chown -R "${username}":"${username}" "${log_dir}"
+sudo chmod -R 775 "${log_dir}"
+
+pacman_log_dir="${log_dir}""/pacman"
+pacman_log_date=$(date '+%Y-%m-%d-%H-%M-%S')
+pacman_log="${pacman_log_dir}""/""${pacman_log_date}""-pacman.log"
+err_log="${pacman_log_dir}""/""${pacman_log_date}""-err.log"
+tmp_log="${pacman_log_dir}""/""${pacman_log_date}""-tmp.log"
+
+mkdir -p "${pacman_log_dir}"
+sudo chown -R "${username}":"${username}" "${pacman_log_dir}"
+sudo chmod -R 775 "${pacman_log_dir}"
+
+echo "${log_heading_1}" > "${pacman_log}"
+echo "${log_heading_1}" > "${err_log}"
+
+printf '%s\n' "${log_heading_1}"
+
+log_entry="Installing pacman packages from text file '""${input_list}""'"
+printf '%s\n' "${log_entry}"
+echo "${log_entry}" >> "${pacman_log}"
+ 
+log_entry="Generating log file '""${pacman_log}""'"
+printf '%s\n' "${log_entry}"
+echo "${log_entry}" >> "${pacman_log}"
+
+printf '%s\n' "${log_heading_2}"
+echo "${log_heading_2}" > "${pacman_log}"
+
+
+
+while read -r line; do
+
+      pacman_count=$(( pacman_count + 1 ))
+      
+      search_arg1="Retrieving packages..."
+      search_arg2="reinstalling ""$line""..."
+      search_arg3="error: target not found: ""$line"
+            
+      log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   "
+      printf '%s\r' "${log_entry}"
+      echo "${log_entry}" >> "${pacman_log}"
+
+      sudo pacman --noconfirm -Syu "$line" > "${tmp_log}" 2>&1
+
+      if grep --quiet "${search_arg1}" "${tmp_log}"
+      then
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" installed"
+         echo "${log_entry}"
+      elif grep --quiet "${search_arg2}" "${tmp_log}"
+      then
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" was reinstalled"
+         echo "${log_entry}"
+      elif grep --quiet "${search_arg3}" "${tmp_log}"
+      then
+         log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   ""...""$line"" was not found"
+         echo "${log_entry}"
+         errors_found="Y"
+         log_entry="***** ERROR installing ""$line"", review ""$err_log"" *****"
+         printf '%s\n' "${log_entry}"
+         echo "${log_entry}" >> "${pacman_log}"
+         echo "${log_entry}" >> "${pacman_log}"
+         echo "${log_entry}" >> "${pacman_log}"
+         log_entry="***** ERROR installing ""$line"" *****"
+         echo "${log_entry}" >> "${err_log}"
+         cat "${tmp_log}" >> "${err_log}"
+         echo "${log_heading_2}" >> "${err_log}"
+      else
+         errors_found="Y"
+         log_entry="***** ERROR installing ""$line"", review ""$err_log"" *****"
+         printf '%s\n' "${log_entry}"
+         echo "${log_entry}" >> "${pacman_log}"
+         echo "${log_entry}" >> "${pacman_log}"
+         echo "${log_entry}" >> "${pacman_log}"
+         log_entry="***** ERROR installing ""$line"" *****"
+         echo "${log_entry}" >> "${err_log}"
+         cat "${tmp_log}" >> "${err_log}"
+         echo "${log_heading_2}" >> "${err_log}"
+      fi
+      
+      cat "${tmp_log}" >> "${pacman_log}"
+      echo "${log_heading_2}" >> "${pacman_log}"
+      
+done < "${input_list}"
+
+
+
+rm -f "${tmp_log}"
+
+if [ "${errors_found}" = "Y" ];then
+   printf '%s\n' "${log_heading_2}"
+   log_entry="***** ERROR(S) found, review ""$err_log"" for details *****"
+   printf '%s\n' "${log_entry}"
+   echo "${log_entry}" >> "${pacman_log}"
+   echo "${log_heading_2}" >> "${pacman_log}"
+   echo "${log_heading_3}" >> "${err_log}"
+   echo "${log_heading_1}" >> "${err_log}"
+   sudo chown "${username}":"${username}" "${err_log}"
+   sudo chmod 775 "${err_log}"
+else
+   rm -f "${err_log}"
+fi
+
+printf '%s\n' "${log_heading_2}"
+
+echo "${log_heading_3}" >> "${pacman_log}"
+printf '%s\n' "${log_heading_3}"
+
+echo "${log_heading_1}" >> "${pacman_log}"
+printf '%s\n' "${log_heading_1}"
+
+sudo chown "${username}":"${username}" "${pacman_log}"
+sudo chmod 775 "${pacman_log}"
+
+cd
