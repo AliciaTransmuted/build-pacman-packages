@@ -126,7 +126,7 @@ while read -r line; do
       pacman_count=$(( pacman_count + 1 ))
       
       search_arg1="Retrieving packages..."
-      search_arg2="reinstalling ""$line""..."
+      search_arg2="reinstalling "
       search_arg3="error: target not found: ""$line"
             
       log_entry="Installing pacman package ""${pacman_count}"": ""${line}""   "
